@@ -15,7 +15,7 @@ This section describes how to build the Google Cloud Pub/Sub sink connector.
 
 You can get the Google Cloud Pub/Sub sink connector using one of the following methods if you use [Pulsar Function Worker](https://pulsar.apache.org/docs/en/functions-worker/) to run connectors in a cluster.
 
-- Download the NAR package from [the download page](https://github.com/streamnative/pulsar-io-google-pubsub/releases/download/v{{connector:version}}/pulsar-io-google-pubsub-{{connector:version}}.nar).
+- Download the NAR package from [the download page](https://github.com/streamnative/pulsar-io-google-pubsub/releases/download/v2.10.3.1/pulsar-io-google-pubsub-2.10.3.1.nar).
 
 - Build it from the source code.
 
@@ -37,7 +37,7 @@ To build the Google Cloud Pub/Sub sink connector from the source code, follow th
 
      ```bash
      ls target
-     pulsar-io-google-pubsub-{{connector:version}}.nar
+     pulsar-io-google-pubsub-2.10.3.1.nar
      ```
 
 ## Work with Function Mesh
@@ -85,7 +85,7 @@ You can create a configuration file (JSON or YAML) to set the properties if you 
         "inputs": [
           "test-google-pubsub-pulsar"
         ],
-        "archive": "connectors/pulsar-io-google-pubsub-{{connector:version}}.nar",
+        "archive": "connectors/pulsar-io-google-pubsub-2.10.3.1.nar",
         "parallelism": 1,
         "configs": {
           "pubsubCredential": "SECRETS",
@@ -103,7 +103,7 @@ You can create a configuration file (JSON or YAML) to set the properties if you 
     name: google-pubsub-sink
     inputs:
       - test-google-pubsub-pulsar
-    archive: connectors/pulsar-io-google-pubsub-{{connector:version}}.nar
+    archive: connectors/pulsar-io-google-pubsub-2.10.3.1.nar
     parallelism: 1
     configs:
       pubsubCredential: 'SECRETS'
@@ -123,7 +123,7 @@ kind: Sink
 metadata:
   name: google-pubsub-sink-sample
 spec:
-  image: streamnative/pulsar-io-google-pubsub:{{connector:version}}
+  image: streamnative/pulsar-io-google-pubsub:2.10.3.1
   className: org.apache.pulsar.ecosystem.io.pubsub.PubsubSink
   replicas: 1
   maxReplicas: 1
@@ -144,7 +144,7 @@ spec:
     cpu: "0.1"
     memory: 1G
   java:
-    jar: connectors/pulsar-io-google-pubsub-{{connector:version}}.nar
+    jar: connectors/pulsar-io-google-pubsub-2.10.3.1.nar
   clusterName: test-pulsar
   autoAck: true
 ```
@@ -194,7 +194,7 @@ This example describes how to use the Google Cloud Pub/Sub sink connector to pul
 2. Copy the NAR package to the Pulsar connectors directory.
 
     ```
-    cp pulsar-io-google-pubsub-{{connector:version}}.nar PULSAR_HOME/connectors/pulsar-io-google-pubsub-{{connector:version}}.nar
+    cp pulsar-io-google-pubsub-2.10.3.1.nar PULSAR_HOME/connectors/pulsar-io-google-pubsub-2.10.3.1.nar
     ```
 
 3. Start Pulsar in standalone mode.
@@ -233,7 +233,7 @@ This example explains how to create a Google Cloud Pub/Sub sink connector in an 
 1. Copy the NAR package of the Google Cloud Pub/Sub sink connector to the Pulsar connectors directory.
 
     ```
-    cp pulsar-io-google-pubsub-{{connector:version}}.nar $PULSAR_HOME/connectors/pulsar-io-google-pubsub-{{connector:version}}.nar
+    cp pulsar-io-google-pubsub-2.10.3.1.nar $PULSAR_HOME/connectors/pulsar-io-google-pubsub-2.10.3.1.nar
     ```
 
 2. Reload all [built-in connectors](https://pulsar.apache.org/docs/en/next/io-connectors/).
@@ -285,7 +285,7 @@ This example describes how to create a Google Cloud Pub/Sub sink connector for a
     metadata:
       name: google-pubsub-sink-sample
     spec:
-      image: streamnative/pulsar-io-google-pubsub:{{connector:version}}
+      image: streamnative/pulsar-io-google-pubsub:2.10.3.1
       className: org.apache.pulsar.ecosystem.io.pubsub.PubsubSink
       replicas: 1
       maxReplicas: 1
@@ -307,7 +307,7 @@ This example describes how to create a Google Cloud Pub/Sub sink connector for a
           cpu: "0.1"
           memory: 1G
       java:
-        jar: connectors/pulsar-io-google-pubsub-{{connector:version}}.nar
+        jar: connectors/pulsar-io-google-pubsub-2.10.3.1.nar
       clusterName: test-pulsar
       autoAck: true
     ```
