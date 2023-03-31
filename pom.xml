@@ -47,7 +47,7 @@
     <testRetryCount>2</testRetryCount>
 
     <!-- connector dependencies -->
-    <jackson-databind.version>2.13.2.1</jackson-databind.version>
+    <jackson-databind.version>2.13.4.2</jackson-databind.version>
     <lombok.version>1.18.22</lombok.version>
     <pulsar.version>2.11.0.0-rc5</pulsar.version>
     <google-cloud.version>20.9.0</google-cloud.version>
