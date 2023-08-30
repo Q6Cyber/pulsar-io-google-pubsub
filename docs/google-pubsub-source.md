@@ -15,7 +15,7 @@ This section describes how to build the Google Cloud Pub/Sub source connector.
 
 You can get the Google Cloud Pub/Sub source connector using one of the following methods if you use [Pulsar Function Worker](https://pulsar.apache.org/docs/en/functions-worker/) to run connectors in a cluster.
 
-- Download the NAR package of the connector from the [download page](https://github.com/streamnative/pulsar-io-google-pubsub/releases/download/v{{connector:version}}/pulsar-io-google-pubsub-{{connector:version}}.nar).
+- Download the NAR package of the connector from the [download page](https://github.com/streamnative/pulsar-io-google-pubsub/releases/download/v3.0.1.2-rootless/pulsar-io-google-pubsub-3.0.1.2-rootless.nar).
 
 - Build the connector from the source code.
 
@@ -37,7 +37,7 @@ To build the Google Cloud Pub/Sub source connector from the source code, follow 
 
      ```bash
      ls target
-     pulsar-io-google-pubsub-{{connector:version}}.nar
+     pulsar-io-google-pubsub-3.0.1.2-rootless.nar
      ```
 
 ## Work with Function Mesh
@@ -84,7 +84,7 @@ You can create a configuration file (JSON or YAML) to set the properties if you 
         "namespace": "default",
         "name": "google-pubsub-source",
         "topicName": "test-google-pubsub-pulsar",
-        "archive": "connectors/pulsar-io-google-pubsub-{{connector:version}}.nar",
+        "archive": "connectors/pulsar-io-google-pubsub-3.0.1.2-rootless.nar",
         "parallelism": 1,
         "configs":
         {
@@ -101,7 +101,7 @@ You can create a configuration file (JSON or YAML) to set the properties if you 
     namespace: default
     name: google-pubsub-source
     topicName: test-google-pubsub-pulsar
-    archive: connectors/pulsar-io-google-pubsub-{{connector:version}}.nar
+    archive: connectors/pulsar-io-google-pubsub-3.0.1.2-rootless.nar
     parallelism: 1
     configs:
       pubsubProjectId: pulsar-io-google-pubsub
@@ -120,7 +120,7 @@ kind: Source
 metadata:
   name: google-pubsub-source-sample
 spec:
-  image: streamnative/pulsar-io-google-pubsub:{{connector:version}}
+  image: streamnative/pulsar-io-google-pubsub:3.0.1.2-rootless
   className: org.apache.pulsar.ecosystem.io.pubsub.PubsubSource
   replicas: 1
   maxReplicas: 1
@@ -141,7 +141,7 @@ spec:
       cpu: "0.1"
       memory: 1G
   java:
-    jar: connectors/pulsar-io-google-pubsub-{{connector:version}}.nar
+    jar: connectors/pulsar-io-google-pubsub-3.0.1.2-rootless.nar
   clusterName: test-pulsar
 ```
 
@@ -190,7 +190,7 @@ This example describes how to use the Google Cloud Pub/Sub source connector to f
 2. Copy the NAR package to the Pulsar connectors directory.
 
     ```
-    cp pulsar-io-google-pubsub-{{connector:version}}.nar PULSAR_HOME/connectors/pulsar-io-google-pubsub-{{connector:version}}.nar
+    cp pulsar-io-google-pubsub-3.0.1.2-rootless.nar PULSAR_HOME/connectors/pulsar-io-google-pubsub-3.0.1.2-rootless.nar
     ```
 
 3. Start Pulsar in standalone mode.
@@ -229,7 +229,7 @@ This example explains how to create a Google Cloud Pub/Sub source connector in a
 1. Copy the NAR package of the Google Cloud Pub/Sub connector to the Pulsar connectors directory.
 
     ```
-    cp pulsar-io-google-pubsub-{{connector:version}}.nar $PULSAR_HOME/connectors/pulsar-io-google-pubsub-{{connector:version}}.nar
+    cp pulsar-io-google-pubsub-3.0.1.2-rootless.nar $PULSAR_HOME/connectors/pulsar-io-google-pubsub-3.0.1.2-rootless.nar
     ```
 
 2. Reload all [built-in connectors](https://pulsar.apache.org/docs/en/next/io-connectors/).
@@ -277,7 +277,7 @@ This example describes how to create a Google Cloud Pub/Sub source connector for
     metadata:
       name: google-pubsub-source-sample
     spec:
-      image: streamnative/pulsar-io-google-pubsub:{{connector:version}}
+      image: streamnative/pulsar-io-google-pubsub:3.0.1.2-rootless
       className: org.apache.pulsar.ecosystem.io.pubsub.PubsubSource
       replicas: 1
       maxReplicas: 1
@@ -298,7 +298,7 @@ This example describes how to create a Google Cloud Pub/Sub source connector for
           cpu: "0.1"
           memory: 1G
       java:
-        jar: connectors/pulsar-io-google-pubsub-{{connector:version}}.nar
+        jar: connectors/pulsar-io-google-pubsub-3.0.1.2-rootless.nar
       clusterName: test-pulsar
     ```
 
