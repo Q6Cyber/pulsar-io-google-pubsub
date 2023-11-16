@@ -37,6 +37,9 @@ import com.google.pubsub.v1.TopicName;
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
+import java.util.Collections;
+import java.util.Map;
+import java.util.Optional;
 import java.util.concurrent.TimeUnit;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.avro.generic.GenericRecord;
@@ -152,7 +155,10 @@ public class PubsubPublisher {
             callback.onSuccess(null);
             return;
         }
-        PubsubMessage message = PubsubMessage.newBuilder().setData(data).build();
+        Map<String, String> attributes = Optional
+            .ofNullable(record.getProperties())
+            .orElse(Collections.emptyMap());
+        PubsubMessage message = PubsubMessage.newBuilder().setData(data).putAllAttributes(attributes).build();
         ApiFuture<String> apiFuture = publisher.publish(message);
         if (callback != null) {
             ApiFutures.addCallback(apiFuture, callback, MoreExecutors.directExecutor());
