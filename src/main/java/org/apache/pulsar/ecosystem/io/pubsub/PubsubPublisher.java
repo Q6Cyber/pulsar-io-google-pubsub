@@ -34,10 +34,12 @@ import com.google.pubsub.v1.Schema;
 import com.google.pubsub.v1.SchemaSettings;
 import com.google.pubsub.v1.Topic;
 import com.google.pubsub.v1.TopicName;
+import io.grpc.netty.shaded.io.netty.util.internal.StringUtil;
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.util.Collections;
+import java.util.HashMap;
 import java.util.Map;
 import java.util.Optional;
 import java.util.concurrent.TimeUnit;
@@ -52,10 +54,12 @@ import org.apache.avro.io.EncoderFactory;
 import org.apache.avro.io.JsonDecoder;
 import org.apache.avro.specific.SpecificDatumReader;
 import org.apache.avro.specific.SpecificDatumWriter;
+import org.apache.pulsar.client.api.Message;
 import org.apache.pulsar.client.api.schema.GenericObject;
 import org.apache.pulsar.ecosystem.io.pubsub.util.AvroUtils;
 import org.apache.pulsar.ecosystem.io.pubsub.util.ProtobufUtils;
 import org.apache.pulsar.functions.api.Record;
+import java.util.Collection;
 
 
 /**
@@ -155,9 +159,17 @@ public class PubsubPublisher {
             callback.onSuccess(null);
             return;
         }
-        Map<String, String> attributes = Optional
-            .ofNullable(record.getProperties())
-            .orElse(Collections.emptyMap());
+        Map<String, String> attributes = new HashMap<>();
+        Optional.ofNullable(record.getProperties())
+            .ifPresent(attributes::putAll);
+        record.getMessage()
+                .map(Message::getProperties)
+                .map(Map::entrySet)
+                .stream()
+                .flatMap(Collection::stream)
+                .filter(entry -> !attributes.containsKey(entry.getKey()))
+                .forEach(entry -> attributes.put(entry.getKey(), String.valueOf(entry.getValue())));
+
         PubsubMessage message = PubsubMessage.newBuilder().setData(data).putAllAttributes(attributes).build();
         ApiFuture<String> apiFuture = publisher.publish(message);
         if (callback != null) {
