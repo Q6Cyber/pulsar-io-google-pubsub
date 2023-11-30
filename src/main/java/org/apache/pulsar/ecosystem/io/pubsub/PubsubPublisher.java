@@ -34,11 +34,10 @@ import com.google.pubsub.v1.Schema;
 import com.google.pubsub.v1.SchemaSettings;
 import com.google.pubsub.v1.Topic;
 import com.google.pubsub.v1.TopicName;
-import io.grpc.netty.shaded.io.netty.util.internal.StringUtil;
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
-import java.util.Collections;
+import java.util.Collection;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Optional;
@@ -59,7 +58,6 @@ import org.apache.pulsar.client.api.schema.GenericObject;
 import org.apache.pulsar.ecosystem.io.pubsub.util.AvroUtils;
 import org.apache.pulsar.ecosystem.io.pubsub.util.ProtobufUtils;
 import org.apache.pulsar.functions.api.Record;
-import java.util.Collection;
 
 
 /**
