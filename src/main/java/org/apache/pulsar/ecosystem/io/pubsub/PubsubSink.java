@@ -21,7 +21,6 @@ package org.apache.pulsar.ecosystem.io.pubsub;
 import com.google.api.core.ApiFutureCallback;
 import java.util.Map;
 import lombok.extern.slf4j.Slf4j;
-import org.apache.pulsar.client.api.schema.GenericObject;
 import org.apache.pulsar.functions.api.Record;
 import org.apache.pulsar.io.core.Sink;
 import org.apache.pulsar.io.core.SinkContext;
@@ -30,7 +29,7 @@ import org.apache.pulsar.io.core.SinkContext;
  * PubsubSink feed data from Pulsar into Google Cloud Pub/Sub.
  */
 @Slf4j
-public class PubsubSink extends PubsubConnector implements Sink<GenericObject> {
+public class PubsubSink extends PubsubConnector implements Sink<byte[]> {
     private SinkContext sinkContext;
     private PubsubPublisher publisher;
     private static final String METRICS_TOTAL_SUCCESS = "_pubsub_sink_total_success_";
@@ -44,7 +43,7 @@ public class PubsubSink extends PubsubConnector implements Sink<GenericObject> {
     }
 
     @Override
-    public void write(Record<GenericObject> record) throws Exception {
+    public void write(Record<byte[]> record) throws Exception {
         this.publisher.send(record, new ApiFutureCallback<String>() {
             @Override
             public void onFailure(Throwable throwable) {
@@ -59,14 +58,14 @@ public class PubsubSink extends PubsubConnector implements Sink<GenericObject> {
         });
     }
 
-    private void success(Record<GenericObject> record) {
+    private void success(Record<byte[]> record) {
         record.ack();
         if (sinkContext != null) {
             sinkContext.recordMetric(METRICS_TOTAL_SUCCESS, 1);
         }
     }
 
-    private void fail(Record<GenericObject> record) {
+    private void fail(Record<byte[]> record) {
         record.fail();
         if (sinkContext != null) {
             sinkContext.recordMetric(METRICS_TOTAL_FAILURE, 1);

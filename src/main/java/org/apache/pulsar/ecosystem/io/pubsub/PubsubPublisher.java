@@ -27,7 +27,6 @@ import com.google.cloud.pubsub.v1.TopicAdminClient;
 import com.google.cloud.pubsub.v1.TopicAdminSettings;
 import com.google.common.util.concurrent.MoreExecutors;
 import com.google.protobuf.ByteString;
-import com.google.protobuf.DynamicMessage;
 import com.google.pubsub.v1.Encoding;
 import com.google.pubsub.v1.PubsubMessage;
 import com.google.pubsub.v1.Schema;
@@ -54,7 +53,6 @@ import org.apache.avro.io.JsonDecoder;
 import org.apache.avro.specific.SpecificDatumReader;
 import org.apache.avro.specific.SpecificDatumWriter;
 import org.apache.pulsar.client.api.Message;
-import org.apache.pulsar.client.api.schema.GenericObject;
 import org.apache.pulsar.ecosystem.io.pubsub.util.AvroUtils;
 import org.apache.pulsar.ecosystem.io.pubsub.util.ProtobufUtils;
 import org.apache.pulsar.functions.api.Record;
@@ -150,8 +148,8 @@ public class PubsubPublisher {
         return new PubsubPublisher(publishBuilder.build(), topic, schemaType, messageSchema);
     }
 
-    public void send(Record<GenericObject> record, ApiFutureCallback<String> callback) throws Exception {
-        ByteString data = recordToByteString(record);
+    public void send(Record<byte[]> record, ApiFutureCallback<String> callback) throws Exception {
+        ByteString data = ByteString.copyFrom(record.getValue());
         if (data == null) {
             log.warn("skip the empty record {}", record);
             callback.onSuccess(null);
@@ -232,40 +230,6 @@ public class PubsubPublisher {
         ByteArrayInputStream stream = new ByteArrayInputStream(recordBytes);
         JsonDecoder jsonDecoder = new DecoderFactory().jsonDecoder(schema, stream);
         return datumReader.read(null, jsonDecoder);
-    }
-
-    ByteString recordToByteString(Record<GenericObject> record)
-            throws IOException {
-        if (record.getSchema() == null) {
-            if (record.getMessage().isPresent()) {
-                return ByteString.copyFrom(record.getMessage().get().getData());
-            } else {
-                return null;
-            }
-        }
-
-        switch (record.getValue().getSchemaType()) {
-            case PROTOBUF:
-            case PROTOBUF_NATIVE:
-                if (hasSchema()) {
-                    throw new RuntimeException("not support convert data of PROTOBUF/PROTOBUF schema type");
-                }
-                DynamicMessage dynamicMessage = (DynamicMessage) record.getValue().getNativeObject();
-                ByteArrayOutputStream out = new ByteArrayOutputStream();
-                dynamicMessage.writeTo(out);
-                return ByteString.copyFrom(out.toByteArray());
-            case BYTES:
-                return ByteString.copyFrom((byte[]) record.getValue().getNativeObject());
-            case AVRO:
-                GenericRecord genericRecord = (GenericRecord) record.getValue().getNativeObject();
-                if (hasSchema()) {
-                    return serializeAvroSchema(genericRecord);
-                }
-                return ByteString.copyFromUtf8(String.valueOf(record.getValue().getNativeObject()));
-            default:
-                String data = String.valueOf(record.getValue().getNativeObject());
-                return ByteString.copyFromUtf8(data);
-        }
     }
 
     public void shutdown() throws InterruptedException {
