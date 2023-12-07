@@ -31,6 +31,7 @@
   <version>3.0.0.3.3</version>
   <name>Pulsar Ecosystem :: IO Connector :: Google Cloud Pub/Sub</name>
   <description>It is an Apache Pulsar io connector for Google Cloud Pub/Sub</description>
+  <packaging>nar</packaging>
   <properties>
     <java.version>17</java.version>
     <maven.compiler.source>17</maven.compiler.source>
@@ -273,80 +274,6 @@
             </execution>
           </executions>
         </plugin>
-        <!-- license -->
-        <plugin>
-          <groupId>com.mycila</groupId>
-          <artifactId>license-maven-plugin</artifactId>
-          <version>${license.plugin.version}</version>
-          <configuration>
-            <header>src/license/ALv2/header.txt</header>
-            <excludes>
-              <exclude>LICENSE</exclude>
-              <exclude>NOTICE</exclude>
-              <exclude>.github/**/*.yml</exclude>
-              <exclude>**/*.template</exclude>
-              <exclude>.ci/**</exclude>
-            </excludes>
-            <mapping>
-              <proto>JAVADOC_STYLE</proto>
-              <conf>SCRIPT_STYLE</conf>
-              <ini>SCRIPT_STYLE</ini>
-              <yaml>SCRIPT_STYLE</yaml>
-              <cfg>SCRIPT_STYLE</cfg>
-              <md>XML_STYLE</md>
-              <txt>SCRIPT_STYLE</txt>
-            </mapping>
-          </configuration>
-          <executions>
-            <execution>
-              <id>check-license-header</id>
-              <goals>
-                <goal>check</goal>
-              </goals>
-              <phase>process-sources</phase>
-            </execution>
-          </executions>
-        </plugin>
-        <!-- checkstyle -->
-        <plugin>
-          <groupId>org.apache.maven.plugins</groupId>
-          <artifactId>maven-checkstyle-plugin</artifactId>
-          <version>${maven-checkstyle-plugin.version}</version>
-          <dependencies>
-            <dependency>
-              <groupId>com.puppycrawl.tools</groupId>
-              <artifactId>checkstyle</artifactId>
-              <version>${puppycrawl.checkstyle.version}</version>
-            </dependency>
-          </dependencies>
-          <configuration>
-            <configLocation>src/checkstyle/checkstyle.xml</configLocation>
-            <suppressionsLocation>src/checkstyle/suppressions.xml</suppressionsLocation>
-            <encoding>UTF-8</encoding>
-            <consoleOutput>true</consoleOutput>
-            <failOnViolation>true</failOnViolation>
-            <includeResources>false</includeResources>
-            <includeTestSourceDirectory>true</includeTestSourceDirectory>
-          </configuration>
-          <executions>
-            <execution>
-              <id>checkstyle</id>
-              <phase>validate</phase>
-              <goals>
-                <goal>check</goal>
-              </goals>
-            </execution>
-          </executions>
-        </plugin>
-        <!-- spotbugs -->
-        <plugin>
-          <groupId>com.github.spotbugs</groupId>
-          <artifactId>spotbugs-maven-plugin</artifactId>
-          <version>${spotbugs-maven-plugin.version}</version>
-          <configuration>
-            <excludeFilterFile>${session.executionRootDirectory}/src/spotbugs/findbugsExclude.xml</excludeFilterFile>
-          </configuration>
-        </plugin>
       </plugins>
     </pluginManagement>
     <plugins>
@@ -365,41 +292,26 @@
         <groupId>org.apache.nifi</groupId>
         <artifactId>nifi-nar-maven-plugin</artifactId>
       </plugin>
-      <!-- license -->
-      <plugin>
-        <groupId>com.mycila</groupId>
-        <artifactId>license-maven-plugin</artifactId>
-      </plugin>
-      <!-- checkstyle -->
       <plugin>
         <groupId>org.apache.maven.plugins</groupId>
-        <artifactId>maven-checkstyle-plugin</artifactId>
-      </plugin>
-      <!-- spotbugs -->
-      <plugin>
-        <groupId>com.github.spotbugs</groupId>
-        <artifactId>spotbugs-maven-plugin</artifactId>
+        <artifactId>maven-install-plugin</artifactId>
       </plugin>
     </plugins>
   </build>
-  <repositories>
-    <repository>
-      <id>ossrh</id>
-      <url>https://s01.oss.sonatype.org/service/local/repositories/iostreamnative-2305/content</url>
-    </repository>
-    <repository>
-      <id>nexus-snapshot</id>
-      <url>https://s01.oss.sonatype.org/content/repositories/snapshots</url>
-    </repository>
-  </repositories>
+
   <distributionManagement>
-    <snapshotRepository>
-      <id>ossrh</id>
-      <url>https://s01.oss.sonatype.org/content/repositories/snapshots</url>
-    </snapshotRepository>
     <repository>
-      <id>ossrh</id>
-      <url>https://s01.oss.sonatype.org/service/local/staging/deploy/maven2/</url>
+      <id>artifact-registry</id>
+      <url>artifactregistry://us-east1-maven.pkg.dev/stable-glass-183220/java-release</url>
     </repository>
+    <snapshotRepository>
+      <id>artifact-registry</id>
+      <url>artifactregistry://us-east1-maven.pkg.dev/stable-glass-183220/java-snapshot</url>
+    </snapshotRepository>
   </distributionManagement>
+
+  <scm>
+    <connection>scm:git:ssh://git@github.com/Q6Cyber/pulsar-io-google-pubsub.git</connection>
+    <developerConnection>scm:git:ssh://git@github.com/Q6Cyber/pulsar-io-google-pubsub.git</developerConnection>
+  </scm>
 </project>
