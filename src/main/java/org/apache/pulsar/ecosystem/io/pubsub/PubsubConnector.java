@@ -18,10 +18,13 @@
  */
 package org.apache.pulsar.ecosystem.io.pubsub;
 
+import static com.google.common.base.Strings.isNullOrEmpty;
+
 import java.io.IOException;
 import java.util.Map;
 import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;
+import org.apache.pulsar.functions.api.BaseContext;
 
 /**
  * PubsubConnector is base class for sink and source.
@@ -31,13 +34,13 @@ public class PubsubConnector {
     @Getter
     private PubsubConnectorConfig config;
 
-    public void initialize(Map<String, Object> config) throws IOException {
+    public void initialize(Map<String, Object> config, BaseContext context) throws IOException {
         if (config == null) {
             throw new IllegalArgumentException("configuration cannot be null");
         }
 
         // load the configuration and validate it
-        this.config = PubsubConnectorConfig.load(config);
+        this.config = PubsubConnectorConfig.load(config, context);
         this.config.validate();
     }
 }

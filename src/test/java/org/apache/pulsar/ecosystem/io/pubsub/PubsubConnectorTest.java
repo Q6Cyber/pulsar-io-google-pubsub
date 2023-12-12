@@ -35,7 +35,7 @@ public class PubsubConnectorTest {
         PubsubConnector connector = new PubsubConnector();
 
         try {
-            connector.initialize(null);
+            connector.initialize(null, null);
             fail();
         } catch (Exception ex) {
             assertEquals("configuration cannot be null", ex.getMessage());
@@ -73,7 +73,7 @@ public class PubsubConnectorTest {
         properties.put("pubsubSchemaDefinition", schemaDefinition);
 
         PubsubConnector connector = new PubsubConnector();
-        connector.initialize(properties);
+        connector.initialize(properties, null);
         if (!(connector.getConfig().getPubsubEndpoint().equals(endpoint)
                 || connector.getConfig().getPubsubEndpoint().equals(PubsubUtils.PUBSUB_EMULATOR_HOST))) {
             fail("unable to get the correct PubSub endpoint");

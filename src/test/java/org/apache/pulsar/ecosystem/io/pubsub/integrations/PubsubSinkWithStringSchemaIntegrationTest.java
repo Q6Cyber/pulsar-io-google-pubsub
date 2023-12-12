@@ -62,7 +62,7 @@ public class PubsubSinkWithStringSchemaIntegrationTest {
         properties.put("pubsubCredential", credential);
         properties.put("pubsubTopicId", topicId);
 
-        pubsubSubscriber = PubsubConnectorConfig.load(properties).newSubscriber(((pubsubMessage, ackReplyConsumer) -> {
+        pubsubSubscriber = PubsubConnectorConfig.load(properties, null).newSubscriber(((pubsubMessage, ackReplyConsumer) -> {
             try {
                 String data = pubsubMessage.getData().toStringUtf8();
                 Assert.assertTrue(data.startsWith(MSG));

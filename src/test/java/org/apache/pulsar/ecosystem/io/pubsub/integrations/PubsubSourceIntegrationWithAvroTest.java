@@ -79,7 +79,7 @@ public class PubsubSourceIntegrationWithAvroTest {
         properties.put("pubsubSchemaEncoding", pubsubSchemaEncoding);
         properties.put("pubsubSchemaDefinition", pubsubSchemaDefinition);
 
-        PubsubConnectorConfig config = PubsubConnectorConfig.load(properties);
+        PubsubConnectorConfig config = PubsubConnectorConfig.load(properties, null);
         PubsubPublisher publisher = PubsubPublisher.create(config);
 
         // wait for the subscriber to perform the subscription operation.

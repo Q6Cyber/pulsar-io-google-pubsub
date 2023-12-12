@@ -41,7 +41,7 @@ public class PubsubPublisherIntegrationTest {
         properties.put("pubsubCredential", credential);
         properties.put("pubsubTopicId", topicId);
 
-        PubsubConnectorConfig config = PubsubConnectorConfig.load(properties);
+        PubsubConnectorConfig config = PubsubConnectorConfig.load(properties, null);
 
         PubsubPublisher pubsubPublisher = PubsubPublisher.create(config);
         pubsubPublisher.shutdown();
@@ -78,7 +78,7 @@ public class PubsubPublisherIntegrationTest {
         properties.put("pubsubSchemaEncoding", schemaEncoding);
         properties.put("pubsubSchemaDefinition", schemaDefinition);
 
-        PubsubConnectorConfig config = PubsubConnectorConfig.load(properties);
+        PubsubConnectorConfig config = PubsubConnectorConfig.load(properties, null);
         PubsubPublisher pubsubPublisher = PubsubPublisher.create(config);
         pubsubPublisher.shutdown();
     }
