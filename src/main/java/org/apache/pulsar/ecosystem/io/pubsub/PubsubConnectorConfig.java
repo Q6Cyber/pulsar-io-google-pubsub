@@ -156,7 +156,6 @@ public class PubsubConnectorConfig implements Serializable {
     private CredentialsProvider newCredentialsProvider(BaseContext context) throws IOException {
         if (!isNullOrEmpty(this.pulsarSecretName) && context != null) {
             String secret = context.getSecret(this.pulsarSecretName);
-            log.info("Secret key: " + this.pulsarSecretName + ", value: " + secret);
 
             if (isNullOrEmpty(secret)) {
                 throw new IllegalArgumentException("If pulsarSecretName is specified, the pulsar secret must not be empty.");
