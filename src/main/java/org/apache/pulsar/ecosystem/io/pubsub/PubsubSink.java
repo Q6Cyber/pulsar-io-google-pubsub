@@ -38,7 +38,7 @@ public class PubsubSink extends PubsubConnector implements Sink<byte[]> {
     @Override
     public void open(Map<String, Object> config, SinkContext sinkContext) throws Exception {
         this.sinkContext = sinkContext;
-        initialize(config);
+        initialize(config, sinkContext);
         this.publisher = PubsubPublisher.create(getConfig());
     }
 

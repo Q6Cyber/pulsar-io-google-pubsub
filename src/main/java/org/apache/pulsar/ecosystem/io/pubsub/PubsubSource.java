@@ -45,7 +45,7 @@ public class PubsubSource extends PubsubConnector implements Source<byte[]> {
     @Override
     public void open(Map<String, Object> config, SourceContext sourceContext) throws Exception {
         this.sourceContext = sourceContext;
-        initialize(config);
+        initialize(config, sourceContext);
 
         queue = new LinkedBlockingQueue<>(DEFAULT_QUEUE_LENGTH);
         this.executorService = Executors.newFixedThreadPool(1);

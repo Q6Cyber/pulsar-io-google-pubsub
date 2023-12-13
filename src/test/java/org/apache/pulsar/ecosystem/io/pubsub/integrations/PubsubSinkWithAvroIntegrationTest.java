@@ -71,7 +71,7 @@ public class PubsubSinkWithAvroIntegrationTest {
                 "{\"type\":\"record\",\"name\":\"User\",\"fields\":[{\"name\":\"key\",\"type\":\"string\"}]}";
         org.apache.avro.Schema schema = AvroUtils.parseSchemaString(avroSchemaString);
 
-        pubsubSubscriber = PubsubConnectorConfig.load(properties).newSubscriber(((pubsubMessage, ackReplyConsumer) -> {
+        pubsubSubscriber = PubsubConnectorConfig.load(properties, null).newSubscriber(((pubsubMessage, ackReplyConsumer) -> {
             try {
                 GenericRecord genericRecord =
                         PubsubPublisher.deserializeAvroWithJsonEncoder(pubsubMessage.getData().toByteArray(), schema);

@@ -54,6 +54,7 @@ import java.nio.charset.StandardCharsets;
 import java.util.Map;
 import lombok.Data;
 import lombok.extern.slf4j.Slf4j;
+import org.apache.pulsar.functions.api.BaseContext;
 import org.apache.pulsar.io.core.annotations.FieldDoc;
 
 /**
@@ -89,6 +90,13 @@ public class PubsubConnectorConfig implements Serializable {
                     + "https://cloud.google.com/docs/authentication/getting-started#setting_the_environment_variable"
     )
     private String pubsubCredential = "";
+
+    @FieldDoc(
+        required = false,
+        defaultValue = "",
+        help = "Pulsar secret name to pull the pubsubCredential json from"
+    )
+    private String pulsarSecretName = "";
 
     @FieldDoc(
             required = true,
@@ -132,7 +140,7 @@ public class PubsubConnectorConfig implements Serializable {
         return this.transportChannelProvider;
     }
 
-    public static PubsubConnectorConfig load(Map<String, Object> config) throws IOException {
+    public static PubsubConnectorConfig load(Map<String, Object> config, BaseContext context) throws IOException {
         if (PubsubUtils.isEmulator()) {
             log.warn("currently connected endpoint is an emulator, if not so, please unset the PUBSUB_EMULATOR_HOST "
                     + "from environment variables");
@@ -141,11 +149,21 @@ public class PubsubConnectorConfig implements Serializable {
         PubsubConnectorConfig pubsubConnectorConfig = mapper.readValue(new ObjectMapper().writeValueAsString(config),
                 PubsubConnectorConfig.class);
         pubsubConnectorConfig.transportChannelProvider = pubsubConnectorConfig.newTransportChannelProvider();
-        pubsubConnectorConfig.credentialsProvider = pubsubConnectorConfig.newCredentialsProvider();
+        pubsubConnectorConfig.credentialsProvider = pubsubConnectorConfig.newCredentialsProvider(context);
         return pubsubConnectorConfig;
     }
 
-    private CredentialsProvider newCredentialsProvider() throws IOException {
+    private CredentialsProvider newCredentialsProvider(BaseContext context) throws IOException {
+        if (!isNullOrEmpty(this.pulsarSecretName) && context != null) {
+            String secret = context.getSecret(this.pulsarSecretName);
+
+            if (isNullOrEmpty(secret)) {
+                throw new IllegalArgumentException("If pulsarSecretName is specified, the pulsar secret must not be empty.");
+            }
+
+            this.pubsubCredential = secret;
+        }
+
         if (!isNullOrEmpty(PUBSUB_EMULATOR_HOST)) {
             return NoCredentialsProvider.create();
         }

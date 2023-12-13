@@ -69,7 +69,7 @@ public class PubsubSourceIntegrationTest {
         properties.put("pubsubCredential", credential);
         properties.put("pubsubTopicId", topicId);
 
-        PubsubConnectorConfig config = PubsubConnectorConfig.load(properties);
+        PubsubConnectorConfig config = PubsubConnectorConfig.load(properties, null);
         PubsubPublisher publisher = PubsubPublisher.create(config);
 
         // wait for the subscriber to perform the subscription operation.
