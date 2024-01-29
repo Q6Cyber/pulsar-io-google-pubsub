@@ -21,12 +21,16 @@ package org.apache.pulsar.ecosystem.io.pubsub;
 import com.google.api.core.ApiFuture;
 import com.google.api.core.ApiFutureCallback;
 import com.google.api.core.ApiFutures;
+import com.google.api.gax.batching.BatchingSettings;
+import com.google.api.gax.batching.FlowControlSettings;
+import com.google.api.gax.batching.FlowController.LimitExceededBehavior;
 import com.google.api.gax.rpc.NotFoundException;
 import com.google.cloud.pubsub.v1.Publisher;
 import com.google.cloud.pubsub.v1.TopicAdminClient;
 import com.google.cloud.pubsub.v1.TopicAdminSettings;
 import com.google.common.util.concurrent.MoreExecutors;
 import com.google.protobuf.ByteString;
+import com.google.protobuf.DynamicMessage;
 import com.google.pubsub.v1.Encoding;
 import com.google.pubsub.v1.PubsubMessage;
 import com.google.pubsub.v1.Schema;
@@ -53,9 +57,11 @@ import org.apache.avro.io.JsonDecoder;
 import org.apache.avro.specific.SpecificDatumReader;
 import org.apache.avro.specific.SpecificDatumWriter;
 import org.apache.pulsar.client.api.Message;
+import org.apache.pulsar.client.api.schema.GenericObject;
 import org.apache.pulsar.ecosystem.io.pubsub.util.AvroUtils;
 import org.apache.pulsar.ecosystem.io.pubsub.util.ProtobufUtils;
 import org.apache.pulsar.functions.api.Record;
+import org.threeten.bp.Duration;
 
 
 /**
@@ -143,13 +149,45 @@ public class PubsubPublisher {
         Publisher.Builder publishBuilder = Publisher.newBuilder(topicName)
                 .setEndpoint(PubsubUtils.toEndpoint(config.getPubsubEndpoint()))
                 .setChannelProvider(config.getTransportChannelProvider())
-                .setCredentialsProvider(config.getCredentialsProvider());
+                .setCredentialsProvider(config.getCredentialsProvider())
+                .setBatchingSettings(buildBatchSettings(config));
 
-        return new PubsubPublisher(publishBuilder.build(), topic, schemaType, messageSchema);
+        return new PubsubPublisher(publishBuilder.build().getBatchingSettings().getIsEnabled(), topic, schemaType, messageSchema);
     }
 
-    public void send(Record<byte[]> record, ApiFutureCallback<String> callback) throws Exception {
-        ByteString data = ByteString.copyFrom(record.getValue());
+    private static BatchingSettings buildBatchSettings(PubsubConnectorConfig config) {
+        BatchingSettings.Builder batchingSettings = BatchingSettings.newBuilder()
+            .setFlowControlSettings(buildBatchFlowControlSettings(config));
+
+        Optional.ofNullable(config.getPubsubPublisherBatchIsEnabled())
+            .ifPresent(batchingSettings::setIsEnabled);
+        Optional.ofNullable(config.getPubsubPublisherBatchDelayThresholdMillis())
+            .map(Duration::ofMillis)
+            .ifPresent(batchingSettings::setDelayThreshold);
+        Optional.ofNullable(config.getPubsubPublisherBatchElementCountThreshold())
+            .ifPresent(batchingSettings::setElementCountThreshold);
+        Optional.ofNullable(config.getPubsubPublisherBatchRequestByteThreshold())
+            .ifPresent(batchingSettings::setRequestByteThreshold);
+
+        return batchingSettings.build();
+    }
+
+    private static FlowControlSettings buildBatchFlowControlSettings(PubsubConnectorConfig config) {
+        FlowControlSettings.Builder flowControlSettings = FlowControlSettings.newBuilder();
+
+        Optional.ofNullable(config.getPubsubPublisherBatchFlowControlLimitExceededBehavior())
+            .map(LimitExceededBehavior::valueOf)
+            .ifPresent(flowControlSettings::setLimitExceededBehavior);
+        Optional.ofNullable(config.getPubsubPublisherBatchFlowControlMaxOutstandingElementCount())
+            .ifPresent(flowControlSettings::setMaxOutstandingElementCount);
+        Optional.ofNullable(config.getPubsubPublisherBatchFlowControlMaxOutstandingRequestBytes())
+            .ifPresent(flowControlSettings::setMaxOutstandingRequestBytes);
+
+        return flowControlSettings.build();
+    }
+
+    public void send(Record<GenericObject> record, ApiFutureCallback<String> callback) throws Exception {
+        ByteString data = recordToByteString(record);
         if (data == null) {
             log.warn("skip the empty record {}", record);
             callback.onSuccess(null);
@@ -230,6 +268,40 @@ public class PubsubPublisher {
         ByteArrayInputStream stream = new ByteArrayInputStream(recordBytes);
         JsonDecoder jsonDecoder = new DecoderFactory().jsonDecoder(schema, stream);
         return datumReader.read(null, jsonDecoder);
+    }
+
+    ByteString recordToByteString(Record<GenericObject> record)
+            throws IOException {
+        if (record.getSchema() == null) {
+            if (record.getMessage().isPresent()) {
+                return ByteString.copyFrom(record.getMessage().get().getData());
+            } else {
+                return null;
+            }
+        }
+
+        switch (record.getValue().getSchemaType()) {
+            case PROTOBUF:
+            case PROTOBUF_NATIVE:
+                if (hasSchema()) {
+                    throw new RuntimeException("not support convert data of PROTOBUF/PROTOBUF schema type");
+                }
+                DynamicMessage dynamicMessage = (DynamicMessage) record.getValue().getNativeObject();
+                ByteArrayOutputStream out = new ByteArrayOutputStream();
+                dynamicMessage.writeTo(out);
+                return ByteString.copyFrom(out.toByteArray());
+            case BYTES:
+                return ByteString.copyFrom((byte[]) record.getValue().getNativeObject());
+            case AVRO:
+                GenericRecord genericRecord = (GenericRecord) record.getValue().getNativeObject();
+                if (hasSchema()) {
+                    return serializeAvroSchema(genericRecord);
+                }
+                return ByteString.copyFromUtf8(String.valueOf(record.getValue().getNativeObject()));
+            default:
+                String data = String.valueOf(record.getValue().getNativeObject());
+                return ByteString.copyFromUtf8(data);
+        }
     }
 
     public void shutdown() throws InterruptedException {
