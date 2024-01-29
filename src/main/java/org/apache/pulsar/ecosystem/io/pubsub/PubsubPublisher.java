@@ -152,7 +152,7 @@ public class PubsubPublisher {
                 .setCredentialsProvider(config.getCredentialsProvider())
                 .setBatchingSettings(buildBatchSettings(config));
 
-        return new PubsubPublisher(publishBuilder.build().getBatchingSettings().getIsEnabled(), topic, schemaType, messageSchema);
+        return new PubsubPublisher(publishBuilder.build(), topic, schemaType, messageSchema);
     }
 
     private static BatchingSettings buildBatchSettings(PubsubConnectorConfig config) {
