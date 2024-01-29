@@ -21,6 +21,9 @@ package org.apache.pulsar.ecosystem.io.pubsub;
 import com.google.api.core.ApiFuture;
 import com.google.api.core.ApiFutureCallback;
 import com.google.api.core.ApiFutures;
+import com.google.api.gax.batching.BatchingSettings;
+import com.google.api.gax.batching.FlowControlSettings;
+import com.google.api.gax.batching.FlowController.LimitExceededBehavior;
 import com.google.api.gax.rpc.NotFoundException;
 import com.google.cloud.pubsub.v1.Publisher;
 import com.google.cloud.pubsub.v1.TopicAdminClient;
@@ -58,6 +61,7 @@ import org.apache.pulsar.client.api.schema.GenericObject;
 import org.apache.pulsar.ecosystem.io.pubsub.util.AvroUtils;
 import org.apache.pulsar.ecosystem.io.pubsub.util.ProtobufUtils;
 import org.apache.pulsar.functions.api.Record;
+import org.threeten.bp.Duration;
 
 
 /**
@@ -145,9 +149,41 @@ public class PubsubPublisher {
         Publisher.Builder publishBuilder = Publisher.newBuilder(topicName)
                 .setEndpoint(PubsubUtils.toEndpoint(config.getPubsubEndpoint()))
                 .setChannelProvider(config.getTransportChannelProvider())
-                .setCredentialsProvider(config.getCredentialsProvider());
+                .setCredentialsProvider(config.getCredentialsProvider())
+                .setBatchingSettings(buildBatchSettings(config));
 
-        return new PubsubPublisher(publishBuilder.build(), topic, schemaType, messageSchema);
+        return new PubsubPublisher(publishBuilder.build().getBatchingSettings().getIsEnabled(), topic, schemaType, messageSchema);
+    }
+
+    private static BatchingSettings buildBatchSettings(PubsubConnectorConfig config) {
+        BatchingSettings.Builder batchingSettings = BatchingSettings.newBuilder()
+            .setFlowControlSettings(buildBatchFlowControlSettings(config));
+
+        Optional.ofNullable(config.getPubsubPublisherBatchIsEnabled())
+            .ifPresent(batchingSettings::setIsEnabled);
+        Optional.ofNullable(config.getPubsubPublisherBatchDelayThresholdMillis())
+            .map(Duration::ofMillis)
+            .ifPresent(batchingSettings::setDelayThreshold);
+        Optional.ofNullable(config.getPubsubPublisherBatchElementCountThreshold())
+            .ifPresent(batchingSettings::setElementCountThreshold);
+        Optional.ofNullable(config.getPubsubPublisherBatchRequestByteThreshold())
+            .ifPresent(batchingSettings::setRequestByteThreshold);
+
+        return batchingSettings.build();
+    }
+
+    private static FlowControlSettings buildBatchFlowControlSettings(PubsubConnectorConfig config) {
+        FlowControlSettings.Builder flowControlSettings = FlowControlSettings.newBuilder();
+
+        Optional.ofNullable(config.getPubsubPublisherBatchFlowControlLimitExceededBehavior())
+            .map(LimitExceededBehavior::valueOf)
+            .ifPresent(flowControlSettings::setLimitExceededBehavior);
+        Optional.ofNullable(config.getPubsubPublisherBatchFlowControlMaxOutstandingElementCount())
+            .ifPresent(flowControlSettings::setMaxOutstandingElementCount);
+        Optional.ofNullable(config.getPubsubPublisherBatchFlowControlMaxOutstandingRequestBytes())
+            .ifPresent(flowControlSettings::setMaxOutstandingRequestBytes);
+
+        return flowControlSettings.build();
     }
 
     public void send(Record<GenericObject> record, ApiFutureCallback<String> callback) throws Exception {

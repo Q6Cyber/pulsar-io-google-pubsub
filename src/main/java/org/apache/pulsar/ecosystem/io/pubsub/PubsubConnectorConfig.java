@@ -133,6 +133,55 @@ public class PubsubConnectorConfig implements Serializable {
     )
     private String pubsubSchemaDefinition = "";
 
+    @FieldDoc(
+        required = false,
+        defaultValue = "",
+        help = "pubsubPublisherBatchIsEnabled is to define whether the publisher batch mode is enabled"
+    )
+    private Boolean pubsubPublisherBatchIsEnabled = null;
+
+    @FieldDoc(
+        required = false,
+        defaultValue = "",
+        help = "pubsubPublisherBatchDelayThresholdMillis is to define the publisher batch delay threshold millies"
+    )
+    private Long pubsubPublisherBatchDelayThresholdMillis = null;
+
+    @FieldDoc(
+        required = false,
+        defaultValue = "",
+        help = "pubsubPublisherBatchElementCountThreshold is to define the publisher batch element count threshold"
+    )
+    private Long pubsubPublisherBatchElementCountThreshold = null;
+
+    @FieldDoc(
+        required = false,
+        defaultValue = "",
+        help = "pubsubPublisherBatchElementCountThreshold is to define the publisher batch request byte threshold"
+    )
+    private Long pubsubPublisherBatchRequestByteThreshold = null;
+
+    @FieldDoc(
+        required = false,
+        defaultValue = "",
+        help = "pubsubPublisherBatchFlowControlMaxOutstandingElementCount is to define the publisher batch flow control max outstanding element count"
+    )
+    private Long pubsubPublisherBatchFlowControlMaxOutstandingElementCount = null;
+
+    @FieldDoc(
+        required = false,
+        defaultValue = "",
+        help = "pubsubPublisherBatchFlowControlMaxOutstandingRequestBytes is to define the publisher batch flow control max outstanding request bytes"
+    )
+    private Long pubsubPublisherBatchFlowControlMaxOutstandingRequestBytes = null;
+
+    @FieldDoc(
+        required = false,
+        defaultValue = "",
+        help = "pubsubPublisherBatchFlowControlLimitExceededBehavior is to define the publisher batch flow control limit exceeded behavior"
+    )
+    private String pubsubPublisherBatchFlowControlLimitExceededBehavior = null;
+
     private transient TransportChannelProvider transportChannelProvider = null;
     private transient CredentialsProvider credentialsProvider = null;
 
