@@ -38,25 +38,31 @@ public class PubsubSink extends PubsubConnector implements Sink<GenericObject> {
 
     @Override
     public void open(Map<String, Object> config, SinkContext sinkContext) throws Exception {
+        log.info("Opening PubsubSink");
         this.sinkContext = sinkContext;
         initialize(config, sinkContext);
         this.publisher = PubsubPublisher.create(getConfig());
     }
 
     @Override
-    public void write(Record<GenericObject> record) throws Exception {
-        this.publisher.send(record, new ApiFutureCallback<String>() {
-            @Override
-            public void onFailure(Throwable throwable) {
-                fail(record);
-                log.error("Failed to sink the record", throwable);
-            }
+    public void write(Record<GenericObject> record) {
+        try {
+            this.publisher.send(record, new ApiFutureCallback<>() {
+                @Override
+                public void onFailure(Throwable throwable) {
+                    log.error("Failed to publish record: {}", record.getKey(), throwable);
+                    fail(record);
+                }
 
-            @Override
-            public void onSuccess(String s) {
-                success(record);
-            }
-        });
+                @Override
+                public void onSuccess(String s) {
+                    success(record);
+                }
+            });
+        } catch (Exception cause) {
+            log.error("Error publishing record: {}", record.getKey(), cause);
+            fail(record);
+        }
     }
 
     private void success(Record<GenericObject> record) {
@@ -75,6 +81,7 @@ public class PubsubSink extends PubsubConnector implements Sink<GenericObject> {
 
     @Override
     public void close() throws InterruptedException {
+        log.info("Closing PubsubSink");
         if (publisher != null) {
             publisher.shutdown();
         }
