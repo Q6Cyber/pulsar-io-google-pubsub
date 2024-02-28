@@ -43,8 +43,10 @@ import java.io.IOException;
 import java.util.Collection;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.Objects;
 import java.util.Optional;
 import java.util.concurrent.TimeUnit;
+import java.util.stream.Stream;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.avro.generic.GenericRecord;
 import org.apache.avro.io.BinaryDecoder;
@@ -156,8 +158,7 @@ public class PubsubPublisher {
     }
 
     private static BatchingSettings buildBatchSettings(PubsubConnectorConfig config) {
-        BatchingSettings.Builder batchingSettings = BatchingSettings.newBuilder()
-            .setFlowControlSettings(buildBatchFlowControlSettings(config));
+        BatchingSettings.Builder batchingSettings = BatchingSettings.newBuilder();
 
         Optional.ofNullable(config.getPubsubPublisherBatchIsEnabled())
             .ifPresent(batchingSettings::setIsEnabled);
@@ -169,10 +170,23 @@ public class PubsubPublisher {
         Optional.ofNullable(config.getPubsubPublisherBatchRequestByteThreshold())
             .ifPresent(batchingSettings::setRequestByteThreshold);
 
+        buildBatchFlowControlSettings(config).ifPresent(batchingSettings::setFlowControlSettings);
+
         return batchingSettings.build();
     }
 
-    private static FlowControlSettings buildBatchFlowControlSettings(PubsubConnectorConfig config) {
+    private static Optional<FlowControlSettings> buildBatchFlowControlSettings(PubsubConnectorConfig config) {
+        if (
+            Stream.of(
+                config.getPubsubPublisherBatchFlowControlLimitExceededBehavior(),
+                config.getPubsubPublisherBatchFlowControlMaxOutstandingElementCount(),
+                config.getPubsubPublisherBatchFlowControlMaxOutstandingRequestBytes()
+            )
+            .noneMatch(Objects::nonNull)
+        ) {
+            return Optional.empty();
+        }
+
         FlowControlSettings.Builder flowControlSettings = FlowControlSettings.newBuilder();
 
         Optional.ofNullable(config.getPubsubPublisherBatchFlowControlLimitExceededBehavior())
@@ -183,7 +197,7 @@ public class PubsubPublisher {
         Optional.ofNullable(config.getPubsubPublisherBatchFlowControlMaxOutstandingRequestBytes())
             .ifPresent(flowControlSettings::setMaxOutstandingRequestBytes);
 
-        return flowControlSettings.build();
+        return Optional.of(flowControlSettings.build());
     }
 
     public void send(Record<GenericObject> record, ApiFutureCallback<String> callback) throws Exception {
