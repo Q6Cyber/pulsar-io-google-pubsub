@@ -18,6 +18,7 @@
  */
 package org.apache.pulsar.ecosystem.io.pubsub;
 
+import com.google.cloud.pubsub.v1.AckReplyConsumer;
 import com.google.pubsub.v1.PubsubMessage;
 import java.util.Map;
 import java.util.Optional;
@@ -33,10 +34,12 @@ public class PubsubRecord implements Record<byte[]> {
     private final String destination;
     private final PubsubMessage originalMessage;
     public static final String PULSAR_MESSAGE_KEY = "pulsar.key";
+    private final AckReplyConsumer ackReplyConsumer;
 
-    public PubsubRecord(String destination, PubsubMessage pubsubMessage) {
+    public PubsubRecord(String destination, PubsubMessage pubsubMessage, AckReplyConsumer ackReplyConsumer) {
         this.destination = destination;
         this.originalMessage = pubsubMessage;
+        this.ackReplyConsumer = ackReplyConsumer;
     }
 
     public Optional<String> getKey() {
