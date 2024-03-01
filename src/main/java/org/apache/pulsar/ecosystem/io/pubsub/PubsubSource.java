@@ -67,16 +67,16 @@ public class PubsubSource extends PubsubConnector implements Source<byte[]> {
         try {
             boolean successfullyInserted = queue.offer(data, 300, TimeUnit.MILLISECONDS);
             if (!successfullyInserted) {
-                failRecurd(data);
+                failRecord(data);
                 log.error("unable to insert message into queue from Google Cloud Pub/Sub");
             }
         } catch (InterruptedException e) {
-            failRecurd(data);
+            failRecord(data);
             log.error("encountered errors when receive message from Google Cloud Pub/Sub", e);
         }
     }
 
-    private void failRecurd(PubsubRecord record) {
+    private void failRecord(PubsubRecord record) {
         record.getAckReplyConsumer().nack();
         if (sourceContext != null) {
             sourceContext.recordMetric(METRICS_TOTAL_FAILURE, 1);
