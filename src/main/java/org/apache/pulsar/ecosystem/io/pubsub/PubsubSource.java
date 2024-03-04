@@ -18,7 +18,9 @@
  */
 package org.apache.pulsar.ecosystem.io.pubsub;
 
+import com.google.cloud.pubsub.v1.AckReplyConsumer;
 import com.google.cloud.pubsub.v1.Subscriber;
+import com.google.pubsub.v1.PubsubMessage;
 import java.util.Map;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
@@ -38,7 +40,7 @@ public class PubsubSource extends PubsubConnector implements Source<byte[]> {
     private static final String METRICS_TOTAL_SUCCESS = "_pubsub_source_total_success_";
     private static final String METRICS_TOTAL_FAILURE = "_pubsub_source_total_failure_";
     private SourceContext sourceContext;
-    private LinkedBlockingQueue<Record<byte[]>> queue;
+    private LinkedBlockingQueue<PubsubRecord> queue;
     private Subscriber subscriber;
     private ExecutorService executorService;
 
@@ -51,18 +53,7 @@ public class PubsubSource extends PubsubConnector implements Source<byte[]> {
         this.executorService = Executors.newFixedThreadPool(1);
         executorService.execute(() -> {
             try {
-                this.subscriber = this.getConfig().newSubscriber((pubsubMessage, ackReplyConsumer) -> {
-                    try {
-                        Record<byte[]> data = new PubsubRecord(this.sourceContext.getOutputTopic(), pubsubMessage);
-                        queue.put(data);
-                        ackReplyConsumer.ack();
-                        this.sourceContext.recordMetric(METRICS_TOTAL_SUCCESS, 1);
-                    } catch (Exception e) {
-                        ackReplyConsumer.nack();
-                        log.error("encountered errors when receive message from Google Cloud Pub/Sub", e);
-                        this.sourceContext.recordMetric(METRICS_TOTAL_FAILURE, 1);
-                    }
-                });
+                this.subscriber = this.getConfig().newSubscriber(this::receiveMessage);
                 log.info("listening for messages on {}", this.subscriber.getSubscriptionNameString());
             } catch (Exception e) {
                 log.error("encountered errors while starting the subscriber", e);
@@ -70,13 +61,41 @@ public class PubsubSource extends PubsubConnector implements Source<byte[]> {
         });
     }
 
+    private void receiveMessage(PubsubMessage pubsubMessage, AckReplyConsumer ackReplyConsumer) {
+        PubsubRecord data = new PubsubRecord(this.sourceContext.getOutputTopic(), pubsubMessage,
+                ackReplyConsumer);
+        try {
+            boolean successfullyInserted = queue.offer(data, 300, TimeUnit.MILLISECONDS);
+            if (!successfullyInserted) {
+                failRecord(data);
+                log.error("unable to insert message into queue from Google Cloud Pub/Sub");
+            }
+        } catch (InterruptedException e) {
+            failRecord(data);
+            log.error("encountered errors when receive message from Google Cloud Pub/Sub", e);
+        }
+    }
+
+    private void failRecord(PubsubRecord record) {
+        record.getAckReplyConsumer().nack();
+        if (sourceContext != null) {
+            sourceContext.recordMetric(METRICS_TOTAL_FAILURE, 1);
+        }
+    }
+
     @Override
     public Record<byte[]> read() throws Exception {
-        return this.queue.take();
+        PubsubRecord record = this.queue.take();
+        record.getAckReplyConsumer().ack();
+        sourceContext.recordMetric(METRICS_TOTAL_SUCCESS, 1);
+        return record;
     }
 
     @Override
     public void close() {
+        if (queue != null && !queue.isEmpty()) {
+            queue.forEach(pubsubRecord -> pubsubRecord.getAckReplyConsumer().nack());
+        }
         if (this.subscriber != null) {
             this.subscriber.stopAsync().awaitTerminated();
         }

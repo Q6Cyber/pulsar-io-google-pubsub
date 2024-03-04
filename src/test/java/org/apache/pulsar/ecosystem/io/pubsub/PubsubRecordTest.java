@@ -20,6 +20,7 @@ package org.apache.pulsar.ecosystem.io.pubsub;
 
 import static org.apache.pulsar.ecosystem.io.pubsub.PubsubRecord.PULSAR_MESSAGE_KEY;
 
+import com.google.cloud.pubsub.v1.AckReplyConsumer;
 import com.google.protobuf.ByteString;
 import com.google.protobuf.Timestamp;
 import com.google.pubsub.v1.PubsubMessage;
@@ -57,7 +58,9 @@ public class PubsubRecordTest {
         Mockito.when(mockPublishTime.getSeconds()).thenReturn(publishTime);
         Mockito.when(mockPubsubMessage.getPublishTime()).thenReturn(mockPublishTime);
 
-        Record<byte[]> record = new PubsubRecord(destination, mockPubsubMessage);
+        AckReplyConsumer mockAckReplyConsumer = Mockito.mock(AckReplyConsumer.class);
+
+        Record<byte[]> record = new PubsubRecord(destination, mockPubsubMessage, mockAckReplyConsumer);
 
         Assert.assertEquals(value, record.getValue());
 

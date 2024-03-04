@@ -22,6 +22,8 @@ import static com.google.common.base.Strings.isNullOrEmpty;
 import static org.apache.pulsar.ecosystem.io.pubsub.PubsubUtils.PUBSUB_EMULATOR_HOST;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.google.api.gax.batching.FlowControlSettings;
+import com.google.api.gax.batching.FlowController;
 import com.google.api.gax.core.CredentialsProvider;
 import com.google.api.gax.core.FixedCredentialsProvider;
 import com.google.api.gax.core.NoCredentialsProvider;
@@ -52,6 +54,9 @@ import java.io.IOException;
 import java.io.Serializable;
 import java.nio.charset.StandardCharsets;
 import java.util.Map;
+import java.util.Objects;
+import java.util.Optional;
+import java.util.stream.Stream;
 import lombok.Data;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.pulsar.functions.api.BaseContext;
@@ -182,6 +187,34 @@ public class PubsubConnectorConfig implements Serializable {
     )
     private String pubsubPublisherBatchFlowControlLimitExceededBehavior = null;
 
+    @FieldDoc(
+            required = false,
+            defaultValue = "",
+            help = "pubsubConsumerBatchFlowControlMaxOutstandingElementCount is to define the consumer batch flow control max outstanding element count"
+    )
+    private Long pubsubConsumerBatchFlowControlMaxOutstandingElementCount = null;
+
+    @FieldDoc(
+            required = false,
+            defaultValue = "",
+            help = "pubsubConsumerBatchFlowControlMaxOutstandingRequestBytes is to define the consumer batch flow control max outstanding request bytes"
+    )
+    private Long pubsubConsumerBatchFlowControlMaxOutstandingRequestBytes = null;
+
+    @FieldDoc(
+            required = false,
+            defaultValue = "",
+            help = "pubsubConsumerBatchFlowControlLimitExceededBehavior is to define the consumer batch flow control limit exceeded behavior"
+    )
+    private String pubsubConsumerBatchFlowControlLimitExceededBehavior = null;
+
+    @FieldDoc(
+            required = false,
+            defaultValue = "",
+            help = "pubsubConsumerParallelPullCount is to define the consumer parallel pull count"
+    )
+    private Integer pubsubConsumerParallelPullCount = null;
+
     private transient TransportChannelProvider transportChannelProvider = null;
     private transient CredentialsProvider credentialsProvider = null;
 
@@ -307,6 +340,21 @@ public class PubsubConnectorConfig implements Serializable {
                 .setEndpoint(PubsubUtils.toEndpoint(this.pubsubEndpoint))
                 .setChannelProvider(this.transportChannelProvider)
                 .setCredentialsProvider(this.credentialsProvider);
+        if (Stream.of(this.pubsubConsumerBatchFlowControlMaxOutstandingElementCount,
+                this.pubsubConsumerBatchFlowControlMaxOutstandingRequestBytes,
+                this.pubsubConsumerBatchFlowControlLimitExceededBehavior).anyMatch(Objects::nonNull)) {
+            FlowControlSettings.Builder flowBuilder = FlowControlSettings.newBuilder();
+            Optional.ofNullable(this.pubsubConsumerBatchFlowControlMaxOutstandingElementCount)
+                    .ifPresent(flowBuilder::setMaxOutstandingElementCount);
+            Optional.ofNullable(this.pubsubConsumerBatchFlowControlMaxOutstandingRequestBytes)
+                    .ifPresent(flowBuilder::setMaxOutstandingRequestBytes);
+            Optional.ofNullable(this.pubsubConsumerBatchFlowControlLimitExceededBehavior)
+                    .map(FlowController.LimitExceededBehavior::valueOf)
+                    .ifPresent(flowBuilder::setLimitExceededBehavior);
+            subscriberBuilder.setFlowControlSettings(flowBuilder.build());
+        }
+        Optional.ofNullable(this.pubsubConsumerParallelPullCount)
+                .ifPresent(subscriberBuilder::setParallelPullCount);
 
         Subscriber subscriber = subscriberBuilder.build();
         subscriber.startAsync().awaitRunning();
