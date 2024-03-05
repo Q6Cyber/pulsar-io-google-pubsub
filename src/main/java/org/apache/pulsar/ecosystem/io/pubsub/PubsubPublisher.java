@@ -223,6 +223,7 @@ public class PubsubPublisher {
         if (callback != null) {
             ApiFutures.addCallback(apiFuture, callback, MoreExecutors.directExecutor());
         }
+        apiFuture.get(30, TimeUnit.SECONDS);
     }
 
     private boolean hasSchema() {
