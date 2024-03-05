@@ -188,6 +188,13 @@ public class PubsubConnectorConfig implements Serializable {
     private String pubsubPublisherBatchFlowControlLimitExceededBehavior = null;
 
     @FieldDoc(
+        required = false,
+        defaultValue = "",
+        help = "pubsubPublisherExecutorThreadCount is to define the publisher executor thread count"
+    )
+    private Integer pubsubPublisherExecutorThreadCount = null;
+
+    @FieldDoc(
             required = false,
             defaultValue = "",
             help = "pubsubConsumerBatchFlowControlMaxOutstandingElementCount is to define the consumer batch flow control max outstanding element count"
