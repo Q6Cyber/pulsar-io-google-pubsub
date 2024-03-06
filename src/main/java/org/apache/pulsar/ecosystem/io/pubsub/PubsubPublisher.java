@@ -24,6 +24,7 @@ import com.google.api.core.ApiFutures;
 import com.google.api.gax.batching.BatchingSettings;
 import com.google.api.gax.batching.FlowControlSettings;
 import com.google.api.gax.batching.FlowController.LimitExceededBehavior;
+import com.google.api.gax.core.ExecutorProvider;
 import com.google.api.gax.rpc.NotFoundException;
 import com.google.cloud.pubsub.v1.Publisher;
 import com.google.cloud.pubsub.v1.TopicAdminClient;
@@ -47,6 +48,7 @@ import java.util.Objects;
 import java.util.Optional;
 import java.util.concurrent.TimeUnit;
 import java.util.stream.Stream;
+import javax.annotation.Nullable;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.avro.generic.GenericRecord;
 import org.apache.avro.io.BinaryDecoder;
@@ -92,6 +94,10 @@ public class PubsubPublisher {
     }
 
     public static PubsubPublisher create(PubsubConnectorConfig config) throws Exception {
+        return create(config, null);
+    }
+
+    public static PubsubPublisher create(PubsubConnectorConfig config, @Nullable ExecutorProvider executorProvider) throws Exception {
         TopicName topicName = TopicName.of(config.getPubsubProjectId(), config.getPubsubTopicId());
 
         TopicAdminSettings topicAdminSettings = TopicAdminSettings.newBuilder()
@@ -153,6 +159,9 @@ public class PubsubPublisher {
                 .setChannelProvider(config.getTransportChannelProvider())
                 .setCredentialsProvider(config.getCredentialsProvider())
                 .setBatchingSettings(buildBatchSettings(config));
+
+        Optional.ofNullable(executorProvider)
+            .ifPresent(publishBuilder::setExecutorProvider);
 
         return new PubsubPublisher(publishBuilder.build(), topic, schemaType, messageSchema);
     }

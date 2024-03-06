@@ -19,7 +19,10 @@
 package org.apache.pulsar.ecosystem.io.pubsub;
 
 import com.google.api.core.ApiFutureCallback;
+import com.google.api.gax.core.ExecutorProvider;
+import com.google.api.gax.core.InstantiatingExecutorProvider;
 import java.util.Map;
+import java.util.Optional;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.pulsar.client.api.schema.GenericObject;
 import org.apache.pulsar.functions.api.Record;
@@ -33,6 +36,7 @@ import org.apache.pulsar.io.core.SinkContext;
 public class PubsubSink extends PubsubConnector implements Sink<GenericObject> {
     private SinkContext sinkContext;
     private PubsubPublisher publisher;
+    private ExecutorProvider publisherExecutorProvider;
     private static final String METRICS_TOTAL_SUCCESS = "_pubsub_sink_total_success_";
     private static final String METRICS_TOTAL_FAILURE = "_pubsub_sink_total_failure_";
 
@@ -40,7 +44,13 @@ public class PubsubSink extends PubsubConnector implements Sink<GenericObject> {
     public void open(Map<String, Object> config, SinkContext sinkContext) throws Exception {
         this.sinkContext = sinkContext;
         initialize(config, sinkContext);
-        this.publisher = PubsubPublisher.create(getConfig());
+
+        var pubsubConnectorConfig = getConfig();
+
+        this.publisherExecutorProvider = Optional.ofNullable(pubsubConnectorConfig.getPubsubPublisherExecutorThreadCount())
+            .map(executorThreadCount -> InstantiatingExecutorProvider.newBuilder().setExecutorThreadCount(executorThreadCount).build())
+            .orElse(null);
+        this.publisher = PubsubPublisher.create(pubsubConnectorConfig, publisherExecutorProvider);
     }
 
     @Override
