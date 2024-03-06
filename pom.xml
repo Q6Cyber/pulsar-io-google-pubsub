@@ -28,7 +28,7 @@
   <modelVersion>4.0.0</modelVersion>
   <groupId>org.apache.pulsar.ecosystem</groupId>
   <artifactId>pulsar-io-google-pubsub</artifactId>
-  <version>3.0.0.3.8-SNAPSHOT</version>
+  <version>3.0.0.3.8</version>
   <name>Pulsar Ecosystem :: IO Connector :: Google Cloud Pub/Sub</name>
   <description>It is an Apache Pulsar io connector for Google Cloud Pub/Sub</description>
   <packaging>nar</packaging>
