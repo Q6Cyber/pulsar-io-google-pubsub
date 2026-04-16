@@ -8,6 +8,7 @@ services:
 
   pulsar-io-google-pubsub-test:
     container_name: pulsar-io-google-pubsub-test
+    hostname: localhost
     build:
       context: ../../
       dockerfile: .ci/integrations/Dockerfile
