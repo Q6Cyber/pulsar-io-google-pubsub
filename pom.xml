@@ -61,6 +61,7 @@
     <maven-compiler-plugin.version>3.10.1</maven-compiler-plugin.version>
     <maven-surefire-plugin.version>3.2.5</maven-surefire-plugin.version>
     <maven-failsafe-plugin.version>3.2.5</maven-failsafe-plugin.version>
+    <maven-shade-plugin.version>3.6.2</maven-shade-plugin.version>
     <nifi.nar.plugin.version>1.2.0</nifi.nar.plugin.version>
     <puppycrawl.checkstyle.version>6.19</puppycrawl.checkstyle.version>
     <spotbugs-maven-plugin.version>4.2.2</spotbugs-maven-plugin.version>
@@ -295,6 +296,42 @@
             </execution>
           </executions>
         </plugin>
+        <!-- shade -->
+        <plugin>
+          <groupId>org.apache.maven.plugins</groupId>
+          <artifactId>maven-shade-plugin</artifactId>
+          <version>${maven-shade-plugin.version}</version>
+          <executions>
+          <execution>
+            <phase>package</phase>
+            <goals>
+              <goal>shade</goal>
+            </goals>
+            <configuration>
+              <relocations>
+                <relocation>
+                  <pattern>com.google.api</pattern>
+                  <shadedPattern>org.apache.pulsar.ecosystem.shaded.com.google.api</shadedPattern>
+                </relocation>
+                <relocation>
+                  <pattern>com.google.auth</pattern>
+                  <shadedPattern>org.apache.pulsar.ecosystem.shaded.com.google.auth</shadedPattern>
+                </relocation>
+                <relocation>
+                  <pattern>com.google.cloud</pattern>
+                  <shadedPattern>org.apache.pulsar.ecosystem.shaded.com.google.cloud</shadedPattern>
+                </relocation>
+                <relocation>
+                  <pattern>io.grpc.auth</pattern>
+                  <shadedPattern>org.apache.pulsar.ecosystem.shaded.io.grpc.auth</shadedPattern>
+                </relocation>
+              </relocations>
+              <minimizeJar>true</minimizeJar>
+              <createDependencyReducedPom>true</createDependencyReducedPom>
+            </configuration>
+          </execution>
+        </executions>
+        </plugin>
       </plugins>
     </pluginManagement>
     <plugins>
@@ -316,6 +353,11 @@
       <plugin>
         <groupId>org.apache.maven.plugins</groupId>
         <artifactId>maven-install-plugin</artifactId>
+      </plugin>
+      <!-- shade -->
+      <plugin>
+        <groupId>org.apache.maven.plugins</groupId>
+        <artifactId>maven-shade-plugin</artifactId>
       </plugin>
     </plugins>
   </build>
