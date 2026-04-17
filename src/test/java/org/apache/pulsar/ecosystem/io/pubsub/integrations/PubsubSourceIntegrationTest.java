@@ -39,6 +39,21 @@ import org.junit.Test;
 
 /**
  * Integration tests for {@link org.apache.pulsar.ecosystem.io.pubsub.PubsubSource}.
+ * <br>
+ * WARNING: This test will most likely fail if you try to run it in IntelliJ or with maven because it requires you to
+ * have:
+ * <ul>
+ *   <li>gcloud pubsub emulator running on <code>localhost:8085</code> with project
+ *   <code>pulsar-io-google-pubsub</code>
+ *   <pre>{@code
+ * gcloud beta emulators pubsub start --project=pulsar-io-google-pubsub
+ *   }</pre></li>
+ *   <li>a local instance of pulsar running on <code>localhost:6650</code></li>
+ * </ul>
+ * You will also need to have the environment variable <code>PUBSUB_EMULATOR_HOST</code> set to <code>localhost:8085</code>.
+ * <br>
+ * Instead of trying to run the integration tests in IntelliJ or with maven, you should run the integration test suite
+ * using the script <code>.ci/integrations/run-integrations-test.sh</code>.
  */
 public class PubsubSourceIntegrationTest {
     private static final String PULSAR_TOPIC = "test-pubsub-source-topic";

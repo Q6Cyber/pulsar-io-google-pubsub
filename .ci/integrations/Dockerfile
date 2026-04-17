@@ -1,4 +1,4 @@
-FROM streamnative/pulsar:latest
+FROM apachepulsar/pulsar:latest
 
 COPY .ci/integrations/test-pulsar-io-google-pubsub-*.yaml /test-pulsar-io-google-pubsub/
 
